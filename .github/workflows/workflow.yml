@@ -1,12 +1,10 @@
 name: CI workflow
 
-
-on: 
+on:
   push:
     branches: ["main"]
   pull_request:
     branches: ["main"]
-
 
 jobs:
   build:
@@ -16,10 +14,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install dependenies
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
         run:
           python3 -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python3 -m pip install -r requirements.txt
 
       - name: Lint with flake8
         run:
@@ -27,4 +33,5 @@ jobs:
           flake8 service --count --max-complexity=10 --max-line-length=127 --statistics 
 
       - name: Run unit tests with nose
-        run: nosetests -v --with-spec --spec-color --with-coverage --cover-package=app
+        run:
+          nosetests -v --with-spec --spec-color --with-coverage --cover-package=app
